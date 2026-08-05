@@ -533,7 +533,13 @@ static NSImage *MenuetBadgeImage(NSString *text, NSColor *fillColor) {
 }
 
 static NSFont *MenuetFont(CGFloat size, CGFloat weight, BOOL mono) {
-	if (size <= 0) size = 14;
+	NSFont *menuFont = [NSFont menuFontOfSize:0];
+	if (size <= 0) {
+		if (!mono && weight == 0) {
+			return menuFont;
+		}
+		size = menuFont.pointSize;
+	}
 	if (mono) {
 		return [NSFont monospacedSystemFontOfSize:size weight:weight];
 	}
@@ -791,7 +797,7 @@ static NSString *MenuetPlainTextFromRuns(NSArray *runs) {
 		} else if (item.submenu) {
 			item.submenu = nil;
 		}
-		item.enabled = clickable || hasChildren;
+		item.enabled = YES;
 		item.image = [NSImage imageFromName:imageName withHeight:16];
 	}
 	while (self.numberOfItems > items.count) {
@@ -1217,12 +1223,10 @@ void createAndRunApplication() {
                         event.type == NSEventTypeRightMouseUp ||
                         (event.modifierFlags & NSEventModifierFlagControl) != 0;
         if (openMenu) {
-                NSStatusBarButton *button = _statusItem.button;
-                button.highlighted = YES;
-                [_rootMenu popUpMenuPositioningItem:nil
-                                         atLocation:NSMakePoint(0, button.bounds.size.height)
-                                             inView:button];
-                button.highlighted = NO;
+               _rootMenu.appearance = NSApp.effectiveAppearance;
+                _statusItem.menu = _rootMenu;
+                [_statusItem.button performClick:nil];
+                _statusItem.menu = nil;
                 return;
         }
         topLevelClicked();
