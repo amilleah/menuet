@@ -179,7 +179,12 @@ type MenuState struct {
 	// — the same TextRun shape used by Regular.Runs. Useful for a status-
 	// item title that mixes weights, sizes, colors, or monospaced digits.
 	Runs  []TextRun
-	Image string // In Resources dir or URL, should have height 22
+	Image string // In Resources dir or URL
+
+	// ImageData is an encoded image (PNG, JPEG, ...) drawn as the status item
+	ImageData []byte `json:",omitempty"`
+	ImageHeight float64 `json:",omitempty"`
+	ImageTemplate bool `json:",omitempty"`
 }
 
 func (a *Application) sendState(state *MenuState) {

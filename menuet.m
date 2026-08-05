@@ -1161,11 +1161,30 @@ void setState(const char *jsonString) {
 		    /*itemFontWeight=*/NSFontWeightRegular,
 		    /*itemColorDict=*/nil,
 		    /*itemMono=*/NO);
-		NSString *imageName = state[@"Image"];
-		NSImage *image = [NSImage imageFromName:imageName withHeight:22];
-		_statusItem.button.image = image;
-		_statusItem.button.image.template = true;
-		_statusItem.button.imagePosition = NSImageLeft;
+		// Raw image data wins over a named image
+		NSString *b64 = [state[@"ImageData"] isKindOfClass:[NSString class]]
+		        ? state[@"ImageData"] : nil;
+		if (b64.length > 0) {
+			NSData *raw = [[NSData alloc] initWithBase64EncodedString:b64 options:0];
+			NSImage *drawn = raw ? [[NSImage alloc] initWithData:raw] : nil;
+			if (drawn) {
+				CGFloat h = [state[@"ImageHeight"] doubleValue];
+				if (h <= 0) h = 18;
+				NSSize px = drawn.size;
+				if (px.height > 0) {
+					drawn.size = NSMakeSize(round(px.width * h / px.height), h);
+				}
+				drawn.template = [state[@"ImageTemplate"] boolValue];
+				_statusItem.button.image = drawn;
+				_statusItem.button.imagePosition = NSImageOnly;
+			}
+		} else {
+			NSString *imageName = state[@"Image"];
+			NSImage *image = [NSImage imageFromName:imageName withHeight:22];
+			_statusItem.button.image = image;
+			_statusItem.button.image.template = true;
+			_statusItem.button.imagePosition = NSImageLeft;
+		}
 	});
 }
 
